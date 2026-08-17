@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f766e">
+<title>مساعد دليفري الغردقة</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;background:#f3f7f7;color:#17313a}
+header{background:linear-gradient(135deg,#0f766e,#155e75);color:#fff;padding:24px 18px 30px;border-radius:0 0 26px 26px}
+h1{margin:0;font-size:25px}.sub{opacity:.9;margin-top:5px}
+.container{max-width:720px;margin:auto;padding:16px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card,.panel{background:#fff;border-radius:18px;padding:16px;box-shadow:0 5px 20px #1231  ;margin-bottom:14px}
+.btn{border:0;border-radius:15px;padding:15px;font-size:16px;font-weight:700;background:#fff;color:#17434a;box-shadow:0 3px 12px #1232;cursor:pointer}
+.btn.primary{background:#0f766e;color:white}.btn.warn{background:#f59e0b;color:#fff}.btn.danger{background:#dc2626;color:#fff}
+.icon{font-size:25px;display:block;margin-bottom:7px}label{display:block;font-weight:700;margin:11px 0 6px}input,select,textarea{width:100%;padding:12px;border:1px solid #d5e0e0;border-radius:12px;font-size:16px;background:#fbfdfd}textarea{min-height:80px}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1}.hidden{display:none}.muted{color:#668087;font-size:13px}.order{border:1px solid #e1ebeb;border-radius:15px;padding:13px;margin:10px 0}.status{display:inline-block;border-radius:20px;padding:5px 9px;font-size:12px;font-weight:700;background:#e8f5f3}
+.stat{font-size:24px;font-weight:800}.back{margin-bottom:12px}.empty{text-align:center;padding:30px;color:#789}
+.small{font-size:13px}.price{font-weight:800;color:#0f766e}
+</style>
+</head>
+<body>
+<header><div class="container"><h1>🚀 مساعد دليفري الغردقة</h1><div class="sub">V2 • إدارة الطلبات والعملاء والحسابات من موبايلك</div></div></header>
+<main class="container">
+
+<section id="home">
+<div class="grid">
+<button class="btn primary" onclick="show('new')"><span class="icon">➕</span>طلب جديد</button>
+<button class="btn" onclick="show('orders')"><span class="icon">📋</span>طلبات اليوم</button>
+<button class="btn" onclick="show('calc')"><span class="icon">💰</span>حاسبة التوصيل</button>
+<button class="btn" onclick="show('prices')"><span class="icon">📍</span>أسعار المناطق</button>
+<button class="btn" onclick="show('stats')"><span class="icon">📊</span>حساب اليوم</button>
+<button class="btn" onclick="show('customers')"><span class="icon">👤</span>العملاء</button>
+<button class="btn" onclick="show('post')"><span class="icon">📣</span>منشور اليوم</button>
+</div>
+<div class="panel"><b>💡 نصيحة:</b><div class="muted">أضف الطلب أولًا، وسيتم حفظه على الهاتف تلقائيًا.</div></div>
+</section>
+
+<section id="new" class="hidden">
+<button class="btn back" onclick="show('home')">↩ الرئيسية</button>
+<div class="panel"><h2>➕ طلب جديد</h2>
+<label>اسم العميل</label><input id="name" placeholder="مثال: أحمد">
+<label>رقم الهاتف</label><input id="phone" inputmode="tel" placeholder="01xxxxxxxxx">
+<label>مكان الاستلام</label><input id="pickup" placeholder="المحل / المطعم">
+<label>مكان التسليم</label><input id="drop" placeholder="المنطقة أو العنوان">
+<label>قيمة الطلب</label><input id="orderValue" type="number" min="0" placeholder="0">
+<label>المنطقة</label><select id="area" onchange="syncPrice()"></select>
+<label>سعر التوصيل</label><input id="delivery" type="number" min="0" placeholder="0">
+<label>ملاحظات</label><textarea id="notes" placeholder="أي تفاصيل إضافية"></textarea>
+<button class="btn primary" style="width:100%;margin-top:14px" onclick="addOrder()">💾 حفظ الطلب</button>
+</div>
+</section>
+
+<section id="orders" class="hidden">
+<button class="btn back" onclick="show('home')">↩ الرئيسية</button>
+<div class="panel"><h2>📋 طلبات اليوم</h2><div id="ordersList"></div></div>
+</section>
+
+<section id="calc" class="hidden">
+<button class="btn back" onclick="show('home')">↩ الرئيسية</button>
+<div class="panel"><h2>💰 حاسبة التوصيل</h2>
+<label>اختر المنطقة</label><select id="calcArea" onchange="calcPrice()"></select>
+<div style="margin:20px 0;text-align:center"><div class="muted">سعر التوصيل</div><div class="stat price" id="calcResult">—</div></div>
+<div class="muted">الممشى السياحي والقرى لها أسعار حسب المكان.</div>
+</div></section>
+
+<section id="prices" class="hidden">
+<button class="btn back" onclick="show('home')">↩ الرئيسية</button>
+<div class="panel"><h2>📍 أسعار المناطق</h2><div id="priceList"></div></div>
+</section>
+
+<section id="customers" class="hidden">
+<button class="btn back" onclick="show('home')">↩ الرئيسية</button>
+<div class="panel"><h2>👤 سجل العملاء</h2>
+<label>بحث بالاسم أو الرقم</label><input id="customerSearch" oninput="renderCustomers()" placeholder="اكتب للبحث...">
+<div id="customersList"></div>
+</div></section>
+
+<section id="post" class="hidden">
+<button class="btn back" onclick="show('home')">↩ الرئيسية</button>
+<div class="panel"><h2>📣 منشور اليوم</h2>
+<div id="postText" style="font-size:21px;font-weight:800;line-height:1.7;text-align:center;padding:20px 5px"></div>
+<div class="card" style="text-align:center"><b>📞 01067936568</b><br><span class="muted">دليفري الغردقة — طلباتك عندنا أسرع وأسهل 🚀</span></div>
+<button class="btn primary" style="width:100%" onclick="newPost()">🔄 منشور آخر</button>
+<button class="btn" style="width:100%;margin-top:8px" onclick="copyPost()">📋 نسخ النص</button>
+</div></section>
+
+<section id="stats" class="hidden">
+<button class="btn back" onclick="show('home')">↩ الرئيسية</button>
+<div class="grid">
+<div class="card"><div class="muted">عدد الطلبات</div><div class="stat" id="statCount">0</div></div>
+<div class="card"><div class="muted">دخل التوصيل</div><div class="stat" id="statDelivery">0 ج</div></div>
+</div>
+<div class="panel"><div class="muted">قيمة الطلبات</div><div class="stat" id="statOrders">0 ج</div></div>
+</section>
+</main>
+
+<script>
+const prices={
+"الدهار":30,"الحفر":35,"استوب شوب":35,"السلام":35,"الكهف":35,"الامل":35,
+"الوفاء":40,"عرابيا":40,"شارع التلاتين":40,"شارع العشرين":40,"الذهبية":40,"ابو نواس":40,
+"ميدان اكا":40,"ابو عشرة":40,"الروضة":40,"علام":40,"النجدة":45,"السقالة":40,
+"الشيراتون":45,"الهلال":50,"شري":50,"شارع المدارس":50,"الهضبة":60,"الكوثر":70,
+"الممشى السياحي":"70 - 100","الإنتر":100,"مجاويش":100,"القرى":"120 - 200"
+};
+let orders=JSON.parse(localStorage.getItem("hd_orders")||"[]");
+const $=id=>document.getElementById(id);
+function populate(){
+ let opts='<option value="">اختر المنطقة</option>';
+ for(const [a,p] of Object.entries(prices)) opts+=`<option value="${a}">${a} — ${p} ج</option>`;
+ $("area").innerHTML=opts;$("calcArea").innerHTML=opts;
+ $("priceList").innerHTML=Object.entries(prices).map(([a,p])=>`<div class="order"><b>${a}</b><span style="float:left" class="price">${p} ج</span></div>`).join("");
+}
+function show(id){
+ document.querySelectorAll("main section").forEach(s=>s.classList.add("hidden"));
+ $(id).classList.remove("hidden");
+ if(id==="orders")renderOrders(); if(id==="stats")renderStats();
+ scrollTo(0,0);
+}
+function syncPrice(){let v=$("area").value;if(prices[v]!==undefined && typeof prices[v]==="number")$("delivery").value=prices[v];}
+function calcPrice(){let v=$("calcArea").value;$("calcResult").textContent=v?(prices[v]+" ج"):"—";}
+function addOrder(){
+ let n=$("name").value.trim(),p=$("phone").value.trim(),d=$("drop").value.trim(),del=Number($("delivery").value||0),val=Number($("orderValue").value||0);
+ if(!n||!p||!d){alert("اكتب اسم العميل ورقم الهاتف ومكان التسليم.");return}
+ orders.unshift({id:Date.now(),name:n,phone:p,pickup:$("pickup").value,drop:d,value:val,delivery:del,notes:$("notes").value,area:$("area").value,status:"جديد"});
+ localStorage.setItem("hd_orders",JSON.stringify(orders));["name","phone","pickup","drop","orderValue","delivery","notes"].forEach(x=>$(x).value="");$("area").value="";
+ alert("تم حفظ الطلب ✅");show("orders");
+}
+function setStatus(id,status){let o=orders.find(x=>x.id===id);if(o){o.status=status;localStorage.setItem("hd_orders",JSON.stringify(orders));renderOrders();}}
+function removeOrder(id){if(confirm("حذف هذا الطلب؟")){orders=orders.filter(o=>o.id!==id);localStorage.setItem("hd_orders",JSON.stringify(orders));renderOrders();}}
+function renderOrders(){
+ $("ordersList").innerHTML=orders.length?orders.map(o=>`<div class="order">
+<b>${o.name}</b> <span class="status">${o.status}</span>
+<div class="small">📞 ${o.phone}<br>📍 ${o.pickup||"—"} ← ${o.drop}<br>💰 التوصيل: ${o.delivery} ج | الطلب: ${o.value} ج | <b>الإجمالي: ${Number(o.value||0)+Number(o.delivery||0)} ج</b></div>
+${o.notes?`<div class="muted">📝 ${o.notes}</div>`:""}
+<div class="row" style="margin-top:9px">
+<a class="btn small" href="tel:${o.phone}">📞 اتصال</a>
+<a class="btn small" target="_blank" href="https://wa.me/2${o.phone.replace(/^0/,'')}">💬 واتساب</a>
+<select onchange="setStatus(${o.id},this.value)"><option>تغيير الحالة</option><option>جديد</option><option>جاري التوصيل</option><option>تم التسليم</option><option>ملغي</option></select>
+<button class="btn danger small" onclick="removeOrder(${o.id})">حذف</button>
+</div></div>`).join(""):'<div class="empty">لا توجد طلبات اليوم.</div>';
+}
+function renderStats(){
+ $("statCount").textContent=orders.length;
+ $("statDelivery").textContent=orders.reduce((s,o)=>s+Number(o.delivery||0),0)+" ج";
+ $("statOrders").textContent=orders.reduce((s,o)=>s+Number(o.value||0),0)+" ج";
+}
+
+const postIdeas=[
+"خليك مرتاح… إحنا موجودين 🚀",
+"محتاج حاجة؟ سيب المشوار علينا 🛵",
+"من أي مكان في الغردقة… نوصل طلبك لبابك 📦",
+"أسرع من تفكيرك… دليفري الغردقة جاهز ⚡",
+"مشوارك علينا… وراحتك أهم حاجة ❤️",
+"اطلب اللي محتاجه وإحنا نوصلهولك بسرعة 🛵💨"
+];
+function renderCustomers(){
+ const q=($("customerSearch")?.value||"").trim().toLowerCase();
+ const map={};
+ orders.forEach(o=>{if(!map[o.phone])map[o.phone]=o});
+ let arr=Object.values(map).filter(o=>(o.name+" "+o.phone).toLowerCase().includes(q));
+ $("customersList").innerHTML=arr.length?arr.map(o=>`<div class="order"><b>${o.name}</b><div class="small">📞 ${o.phone}<br>📍 ${o.drop}</div>
+ <div class="row" style="margin-top:8px"><a class="btn small" href="tel:${o.phone}">📞 اتصال</a><a class="btn small" target="_blank" href="https://wa.me/2${o.phone.replace(/^0/,'')}">💬 واتساب</a></div></div>`).join(""):'<div class="empty">لا يوجد عملاء مطابقون للبحث.</div>';
+}
+function newPost(){
+ $("postText").textContent=postIdeas[Math.floor(Math.random()*postIdeas.length)]+"\n📞 01067936568";
+}
+async function copyPost(){
+ const t=$("postText").textContent;
+ try{await navigator.clipboard.writeText(t);alert("تم نسخ المنشور ✅")}catch(e){alert(t)}
+}
+const oldShow=show;
+show=function(id){oldShow(id);if(id==="customers")renderCustomers();if(id==="post" && !$("postText").textContent)newPost();};
+newPost();
+populate();
+</script>
+</body></html>
